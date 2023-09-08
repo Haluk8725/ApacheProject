@@ -62,8 +62,8 @@ public class Test1 {
                             String inventorySku = inventorySkuCell.getStringCellValue();
 
 
-                            if (inventorySku.contains(sku)) {
-                                System.out.println(sku);
+                            if (!inventorySku.startsWith("FBA")&&!(inventorySku.contains("E2"+sku))&&inventorySku.contains(sku)) {
+
                                 Row outputRow = outputSheet.createRow(outputRowIndex++);
                                 Cell outputSkuCell = outputRow.createCell(0);
                                 Cell outputStockCell = outputRow.createCell(1);

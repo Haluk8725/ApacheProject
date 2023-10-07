@@ -1,32 +1,31 @@
 package com.test;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.edge.EdgeDriver;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.ScatteringByteChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-public class deneme {
-
-    public static void main(String[] args) throws InterruptedException {
+public class eBayWebScraping {
+    public static void main(String[] args) {
+        // WebDriver'ı başlatın
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.get("https://www.ebay.com");
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
+        // eBay web sitesini açın
+        driver.get("https://www.ebay.com");
 
         try {
             FileInputStream excelFile = new FileInputStream("C:\\Users\\haluk\\Downloads\\OEM_Title_Samples.xlsx");
@@ -35,16 +34,28 @@ public class deneme {
 
             // 2. sütundaki OEM numaralarını alın
             List<String> oemNumbers = readOEMNumbersFromExcel(sheet, 1); // 2. sütun (sıfır tabanlı dizin 1)
-            List<String>minPrice=new ArrayList<>();
-            List<String>url=new ArrayList<>();
-            List<Double> ortalama= new ArrayList<>();
+
+            // Yeni bir Excel dosyası oluşturun
+            Workbook newWorkbook = new XSSFWorkbook();
+            Sheet newSheet = newWorkbook.createSheet("eBayVerileri");
+
+            // Excel dosyasının başlık satırını oluşturun
+            Row headerRow = newSheet.createRow(0);
+            Cell headerOemCell = headerRow.createCell(0);
+            headerOemCell.setCellValue("OEM Numarası");
+            Cell headerLowestPriceCell = headerRow.createCell(1);
+            headerLowestPriceCell.setCellValue("En Düşük Ücret");
+            Cell headerAveragePriceCell = headerRow.createCell(2);
+            headerAveragePriceCell.setCellValue("Ortalama Ücret");
+            Cell headerUrlCell = headerRow.createCell(3);
+            headerUrlCell.setCellValue("URL");
 
             // OEM numaralarını yazdırın veya başka bir işlem yapın
             for (String oemNumber : oemNumbers) {
                 System.out.println("OEM Numarası: " + oemNumber);
                 WebElement searchBox = driver.findElement(By.id("gh-ac"));
                 searchBox.clear();
-                searchBox.sendKeys("\""+oemNumber+"\"");
+                searchBox.sendKeys(oemNumber);
                 searchBox.submit();
                 Thread.sleep(4000);
 
@@ -54,51 +65,78 @@ public class deneme {
                 lowestButton.click();
                 Thread.sleep(500);
 
-
                 int index = 2;
                 while (true) {
-
                     try {
-                        int i = 0;
-                        // WebElement lowestPriceProduct = driver.findElement(By.cssSelector(".s-item"));
+                        // Listeyi temizleyin
                         List<WebElement> prices = driver.findElements(By.xpath("//ul[@class='srp-results srp-list clearfix']/li//span[@class=\"s-item__price\"]"));
-                        // String productTitle = lowestPriceProduct.findElement(By.cssSelector(".s-item__title")).getText();
-                        Thread.sleep(500);
+                        List<Double> priceList = createList(prices);
+
+                        // Ortalama hesaplamak için ortalama fonksiyonunu kullanın
+                        double average = ortalama(priceList);
+
+                        // Diğer verileri alın
                         String productPrice = driver.findElement(By.xpath("//ul[@class='srp-results srp-list clearfix']/li[" + index + "]//span[@class=\"s-item__price\"]")).getText();
                         String productUrl = driver.findElement(By.xpath("//ul[@class='srp-results srp-list clearfix']/li[" + index + "]//a")).getAttribute("href");
-                        if (i == 1) break;
-                        System.out.println("Ürün Fiyatı: " + productPrice);
-                        minPrice.add(productPrice);
-                        i++;
-                        System.out.println("Ortalama: " + ortalama(createList(prices)));
-                        ortalama.add(ortalama(createList(prices)));
-                        System.out.println("Ürün URL'si: " + productUrl);
-                        url.add(productUrl);
+
+                        // Orijinal Excel dosyasına verileri yazın
+                        Row dataRow = sheet.getRow(index);
+                        Cell oemCell = dataRow.createCell(4); // 5. sütun (sıfır tabanlı dizin 4)
+                        oemCell.setCellValue(oemNumber);
+                        Cell lowestPriceCell = dataRow.createCell(5); // 6. sütun (sıfır tabanlı dizin 5)
+                        lowestPriceCell.setCellValue(productPrice);
+                        Cell averagePriceCell = dataRow.createCell(6); // 7. sütun (sıfır tabanlı dizin 6)
+                        averagePriceCell.setCellValue(average);
+                        Cell urlCell = dataRow.createCell(7); // 8. sütun (sıfır tabanlı dizin 7)
+                        urlCell.setCellValue(productUrl);
+
+                        // Yeni Excel dosyasına verileri yazın
+                        Row newDataRow = newSheet.createRow(index);
+                        Cell newOemCell = newDataRow.createCell(0);
+                        newOemCell.setCellValue(oemNumber);
+                        Cell newLowestPriceCell = newDataRow.createCell(1);
+                        newLowestPriceCell.setCellValue(productPrice);
+                        Cell newAveragePriceCell = newDataRow.createCell(2);
+                        newAveragePriceCell.setCellValue(average);
+                        Cell newUrlCell = newDataRow.createCell(3);
+                        newUrlCell.setCellValue(productUrl);
+
                         break;
                     } catch (Exception e) {
                         index++;
                     }
-
                 }
-                // Sonuçları yazdırın
-                //  System.out.println("Ürün Adı: " + productTitle);
 
+                // eBay ana sayfasına geri dön
                 WebElement ebay = driver.findElement(By.xpath("//a[@id='gh-la']"));
                 ebay.click();
             }
-            writeToExcel(oemNumbers,url,minPrice,ortalama);
 
-            // Workbook ve FileInputStream'i kapatın
+            // Orijinal Excel dosyasını kaydedin
+            FileOutputStream outputStream = new FileOutputStream("C:\\Users\\haluk\\Downloads\\OEM_Title_Samples.xlsx");
+            workbook.write(outputStream);
+            outputStream.close();
+
+            // Yeni Excel dosyasını kaydedin
+            FileOutputStream newOutputStream = new FileOutputStream("EbayVerileri.xlsx");
+            newWorkbook.write(newOutputStream);
+            newOutputStream.close();
+
+            // Workbook ve FileInputStream'leri kapatın
             workbook.close();
+            newWorkbook.close();
             excelFile.close();
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            // WebDriver'ı kapatın
+            driver.quit();
         }
     }
 
-    // Excel dosyasından sütundaki OEM numaralarını alın
     private static List<String> readOEMNumbersFromExcel(Sheet sheet, int columnIndex) {
         List<String> oemNumbers = new ArrayList<>();
+
         int rowIndex = 0;
 
         Iterator<Row> rowIterator = sheet.iterator();
@@ -123,7 +161,6 @@ public class deneme {
         if (list.size() >= 4) {
             for (int i = 0; i < 4; i++) {
                 ort += list.get(i);
-
             }
             return ort / 4;
         } else {
@@ -132,46 +169,13 @@ public class deneme {
             }
             return ort / list.size();
         }
-
     }
 
     private static List<Double> createList(List<WebElement> prices) {
         List<Double> priceList = new ArrayList<>();
         for (WebElement price : prices) {
-
             priceList.add(Double.parseDouble(price.getText().substring(1).replaceAll(",", "")));
         }
         return priceList;
     }
-
-    public static void writeToExcel(List<String> oemIds, List<String> urls, List<String> lowestPrices, List<Double> averagePrices) {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Ebay Veriler");
-
-        // Başlık satırını oluşturun
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("OEM ID");
-        headerRow.createCell(3).setCellValue("URL");
-        headerRow.createCell(1).setCellValue("En Düşük Fiyat");
-        headerRow.createCell(2).setCellValue("Ortalama Fiyat");
-
-        // Verileri hücrelere yazın
-        for (int i = 0; i < oemIds.size(); i++) {
-            Row row = sheet.createRow(i + 1);
-            row.createCell(0).setCellValue(oemIds.get(i));
-            row.createCell(3).setCellValue(urls.get(i));
-            row.createCell(1).setCellValue(lowestPrices.get(i));
-            row.createCell(2).setCellValue(averagePrices.get(i));
-        }
-
-        try (FileOutputStream outputStream = new FileOutputStream("Ebay Veriler.xlsx")) {
-            workbook.write(outputStream);
-            System.out.println("Excel dosyası oluşturuldu.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
 }
-

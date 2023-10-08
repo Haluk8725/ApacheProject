@@ -36,6 +36,7 @@ public class deneme {
             // 2. sütundaki OEM numaralarını alın
             List<String> oemNumbers = readOEMNumbersFromExcel(sheet, 1); // 2. sütun (sıfır tabanlı dizin 1)
             List<String>minPrice=new ArrayList<>();
+            List<String>freeShipMinPrice=new ArrayList<>();
             List<String>url=new ArrayList<>();
             List<Double> ortalama= new ArrayList<>();
 
@@ -52,7 +53,28 @@ public class deneme {
                 button.click();
                 WebElement lowestButton = driver.findElement(By.xpath("//span[normalize-space()='Price + Shipping: lowest first']"));
                 lowestButton.click();
-                Thread.sleep(500);
+                Thread.sleep(1500);
+                WebElement newItem=driver.findElement(By.xpath("//input[@aria-label='New']"));
+                newItem.click();
+                Thread.sleep(1500);
+
+                int index1 = 2;
+                while (true) {
+
+                    try {
+
+                       String fShipProductPrice = driver.findElement(By.xpath("//ul[@class='srp-results srp-list clearfix']/li[" + index1 + "]//span[@class=\"s-item__price\"]")).getText();
+                       freeShipMinPrice.add(fShipProductPrice);
+                       break;}
+                       catch (Exception a) {
+                        index1++;
+                    }
+                    }
+
+
+                WebElement checkBox= driver.findElement(By.xpath("//input[@aria-label='Free Shipping']"));
+                checkBox.click();
+                Thread.sleep(1500);
 
 
                 int index = 2;
@@ -70,6 +92,8 @@ public class deneme {
                         System.out.println("Ürün Fiyatı: " + productPrice);
                         minPrice.add(productPrice);
                         i++;
+                        String productShipping="Free shipping";
+
                         System.out.println("Ortalama: " + ortalama(createList(prices)));
                         ortalama.add(ortalama(createList(prices)));
                         System.out.println("Ürün URL'si: " + productUrl);
@@ -86,7 +110,7 @@ public class deneme {
                 WebElement ebay = driver.findElement(By.xpath("//a[@id='gh-la']"));
                 ebay.click();
             }
-            writeToExcel(oemNumbers,url,minPrice,ortalama);
+            writeToExcel(oemNumbers,freeShipMinPrice,url,minPrice,ortalama);
 
             // Workbook ve FileInputStream'i kapatın
             workbook.close();
@@ -144,24 +168,26 @@ public class deneme {
         return priceList;
     }
 
-    public static void writeToExcel(List<String> oemIds, List<String> urls, List<String> lowestPrices, List<Double> averagePrices) {
+    public static void writeToExcel(List<String> oemIds,List<String>freeShipP, List<String> urls, List<String> lowestPrices, List<Double> averagePrices) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Ebay Veriler");
 
         // Başlık satırını oluşturun
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("OEM ID");
-        headerRow.createCell(3).setCellValue("URL");
-        headerRow.createCell(1).setCellValue("En Düşük Fiyat");
-        headerRow.createCell(2).setCellValue("Ortalama Fiyat");
+        headerRow.createCell(4).setCellValue("URL");
+        headerRow.createCell(2).setCellValue("En Düşük Fiyat");
+        headerRow.createCell(3).setCellValue("Ortalama Fiyat");
+        headerRow.createCell(1).setCellValue("Kargo Ücreti Dahil Olmayan");
 
         // Verileri hücrelere yazın
         for (int i = 0; i < oemIds.size(); i++) {
             Row row = sheet.createRow(i + 1);
             row.createCell(0).setCellValue(oemIds.get(i));
-            row.createCell(3).setCellValue(urls.get(i));
-            row.createCell(1).setCellValue(lowestPrices.get(i));
-            row.createCell(2).setCellValue(averagePrices.get(i));
+            row.createCell(4).setCellValue(urls.get(i));
+            row.createCell(2).setCellValue(lowestPrices.get(i));
+            row.createCell(3).setCellValue(averagePrices.get(i));
+            row.createCell(1).setCellValue(freeShipP.get(i));
         }
 
         try (FileOutputStream outputStream = new FileOutputStream("Ebay Veriler.xlsx")) {

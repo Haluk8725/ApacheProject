@@ -110,7 +110,12 @@ public class StockControl1 {
                     Row mainRow = mainSheet.getRow(j);
                     String mainItemNumber = String.valueOf(mainRow.getCell(0));
                     Cell cell = mainRow.getCell(3);
-                    String mainItemNumber1=mainItemNumber.substring(0,mainItemNumber.length()-2);
+                    String mainItemNumber1="";
+                    if (mainItemNumber.contains("-")||mainItemNumber.contains("C")||mainItemNumber.contains("P")||mainItemNumber.contains("T")){
+                        mainItemNumber1=mainItemNumber;
+                    } else {mainItemNumber1=mainItemNumber.substring(0,mainItemNumber.length()-2);}
+                   // System.out.println(mainItemNumber1);
+                    //System.err.println(mainItemNumber);
                     if (mainItemNumber1.equalsIgnoreCase(sku)) {
                         System.out.println(mainItemNumber1);
                         if (cell.getCellType() == CellType.NUMERIC) {
@@ -169,27 +174,68 @@ public class StockControl1 {
     }
     private static String itemNo(String sku){
         String result="";
-        if(sku.startsWith("TR-") && ((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
-                ((sku.endsWith("-5")))))) {
-            result = sku.substring(3, sku.length() - 2); // İlk iki karakteri atla
-        } else if (sku.startsWith("TR-") ) {
+         if (sku.startsWith("TR-") ) {
             result=sku.substring(3); // İlk iki karakteri atla
             System.err.println(result);
         }
         else if(sku.startsWith("R-") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
-                ((sku.endsWith("-5")))))) {
+                ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
             result = sku.substring(2,sku.length()-2); // İlk iki karakteri atla
                     }
         else if(sku.startsWith("R-")){
             result= sku.substring(2); System.err.println(result);
         }
         else if(sku.startsWith("R") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
-                ((sku.endsWith("-5")))))) {
+                ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
             result = sku.substring(1, sku.length() - 2); // İlk iki karakteri atla
         }
         else if(sku.startsWith("R")){
             result= sku.substring(1); System.err.println(result);
         }
+         else if(sku.startsWith("CF-") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
+                 ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
+             result = sku.substring(3,sku.length()-2); // İlk iki karakteri atla
+         }
+         else if(sku.startsWith("CF-")){
+             result= sku.substring(3); System.err.println(result);
+         }
+         else if(sku.startsWith("CF") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
+                 ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
+             result = sku.substring(2, sku.length() - 2); // İlk iki karakteri atla
+         }
+         else if(sku.startsWith("CF")){
+             result= sku.substring(2); System.err.println(result);
+         }
+
+         else if(sku.startsWith("S-") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
+                 ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
+             result = sku.substring(2,sku.length()-2); // İlk iki karakteri atla
+         }
+         else if(sku.startsWith("S-")){
+             result= sku.substring(2); System.err.println(result);
+         }
+         else if(sku.startsWith("S") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
+                 ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
+             result = sku.substring(1, sku.length() - 2); // İlk iki karakteri atla
+         }
+         else if(sku.startsWith("S")){
+             result= sku.substring(1); System.err.println(result);
+         }
+
+         else if(sku.startsWith("A-") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
+                 ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
+             result = sku.substring(2,sku.length()-2); // İlk iki karakteri atla
+         }
+         else if(sku.startsWith("A-")){
+             result= sku.substring(2); System.err.println(result);
+         }
+         else if(sku.startsWith("A") &&((sku.endsWith("-1")||((sku.endsWith("-2")))||((sku.endsWith("-3")))||((sku.endsWith("-4")))||
+                 ((sku.endsWith("-5")))||((sku.endsWith("-6")))||((sku.endsWith("-7")))||((sku.endsWith("-8")))||((sku.endsWith("-9")))))) {
+             result = sku.substring(1, sku.length() - 2); // İlk iki karakteri atla
+         }
+         else if(sku.startsWith("A")){
+             result= sku.substring(1); System.err.println(result);
+         }
         return result;
     }
 }
